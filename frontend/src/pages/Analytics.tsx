@@ -9,14 +9,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   PieChart,
   Pie,
   Cell,
-  ScatterChart,
-  Scatter,
-  RadialBarChart,
-  RadialBar,
 } from 'recharts';
 import {
   getRetentionTrend,
@@ -96,7 +91,6 @@ const Analytics: React.FC = () => {
 
     const riskLevel = insights.risk_label;
     const riskScore = insights.risk_score;
-    const topRiskFactor = insights.risk_factors?.[0];
     const daysSinceVisit = details.days_since_last_visit;
     const condition = details.primary_condition;
     const isChronicPatient = details.is_chronic === 'Yes';
@@ -253,7 +247,7 @@ const Analytics: React.FC = () => {
   ];
 
   // Enhanced trend data with meaningful fallback
-  const trendChartData = trendData?.trend?.length > 0 ? trendData.trend : [
+  const trendChartData = (trendData?.trend && trendData.trend.length > 0) ? trendData.trend : [
     { month: 'Jan 2026', patient_count: 1850 },
     { month: 'Feb 2026', patient_count: 1920 },
     { month: 'Mar 2026', patient_count: 2200 },
@@ -722,18 +716,18 @@ const Analytics: React.FC = () => {
                     borderRadius: '6px',
                     color: '#fff',
                   }}
-                  formatter={(value, name) => [
+                  formatter={(value: any) => [
                     `${value} patients`,
                     'Patient Count'
                   ]}
-                  labelFormatter={(label, payload) => {
+                  labelFormatter={(label: any, payload: any) => {
                     const data = payload?.[0]?.payload;
                     return data ? `${label} (Avg Risk: ${data.avg_churn_score})` : label;
                   }}
                 />
                 <Bar dataKey="patient_count" radius={[0, 6, 6, 0]}>
                   {conditionsData.conditions.map((entry: any, index: number) => (
-                    <Bar key={`condition-${index}`} fill={entry.color} />
+                    <Cell key={`condition-${index}`} fill={entry.color} />
                   ))}
                 </Bar>
               </BarChart>
@@ -793,11 +787,11 @@ const Analytics: React.FC = () => {
                     borderRadius: '6px',
                     color: '#fff',
                   }}
-                  formatter={(value, name) => [
+                  formatter={(value: any) => [
                     `${value} patients`,
                     'Patient Count'
                   ]}
-                  labelFormatter={(label, payload) => {
+                  labelFormatter={(label: any, payload: any) => {
                     const data = payload?.[0]?.payload;
                     return data ? `${label} (Avg Risk: ${data.avg_churn_score}%)` : label;
                   }}

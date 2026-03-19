@@ -17,7 +17,7 @@ const App: React.FC = () => {
     const initializeApp = async () => {
       try {
         // Add a minimum loading time for better UX
-        const [apiCall] = await Promise.all([
+        await Promise.all([
           getSummary(),
           new Promise(resolve => setTimeout(resolve, 1500)) // Minimum 1.5s loading
         ]);

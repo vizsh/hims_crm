@@ -5,7 +5,8 @@ import { Patient } from '../api';
 
 const Patients: React.FC = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const [messagePatient, setMessagePatient] = useState<Patient | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_messagePatient, setMessagePatient] = useState<Patient | null>(null);
 
   return (
     <div>

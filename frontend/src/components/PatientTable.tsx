@@ -361,7 +361,7 @@ const PatientTable: React.FC<PatientTableProps> = ({ onPatientClick, onSendMessa
                       <td style={{ padding: '16px' }}>
                         <ActionButton
                           onClick={(e) => {
-                            e.stopPropagation();
+                            e?.stopPropagation();
                             onSendMessage(patient);
                           }}
                           variant="secondary"

@@ -1,11 +1,12 @@
 import React from 'react';
 
 interface ActionButtonProps {
-  onClick: () => void;
+  onClick: (e?: React.MouseEvent<HTMLButtonElement>) => void;
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'danger';
   disabled?: boolean;
   loading?: boolean;
+  style?: React.CSSProperties;
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({
@@ -14,6 +15,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   variant = 'primary',
   disabled = false,
   loading = false,
+  style: customStyle,
 }) => {
   const getBackgroundColor = () => {
     switch (variant) {
@@ -43,6 +45,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         cursor: disabled ? 'not-allowed' : 'pointer',
         transition: 'all 0.2s ease',
         opacity: disabled ? 0.5 : 1,
+        ...customStyle,
       }}
       onMouseEnter={(e) => {
         if (!disabled && !loading) {

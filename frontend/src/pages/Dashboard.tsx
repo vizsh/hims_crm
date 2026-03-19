@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import KPICards from '../components/KPICards';
 import PatientTable from '../components/PatientTable';
 import PatientDrawer from '../components/PatientDrawer';
-import { Patient, getSummary, AnalyticsSummary } from '../api';
+import { getSummary, AnalyticsSummary } from '../api';
 
 const Dashboard: React.FC = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const [messagePatient, setMessagePatient] = useState<Patient | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const navigate = useNavigate();
@@ -124,7 +123,7 @@ const Dashboard: React.FC = () => {
 
       <PatientTable
         onPatientClick={(patient) => setSelectedPatientId(patient.patient_id)}
-        onSendMessage={(patient) => setMessagePatient(patient)}
+        onSendMessage={() => {}}
       />
 
       <PatientDrawer

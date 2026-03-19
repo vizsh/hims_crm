@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { isDemoMode } from '../api';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -7,6 +8,15 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const [showDemoBanner, setShowDemoBanner] = useState(false);
+
+  useEffect(() => {
+    // Check demo mode after a short delay to allow API calls to determine mode
+    const timer = setTimeout(() => {
+      setShowDemoBanner(isDemoMode());
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const navItems = [
     {
@@ -159,6 +169,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <div style={{ marginLeft: '240px', flex: 1, padding: '32px', minHeight: '100vh' }}>
+        {showDemoBanner && (
+          <div
+            style={{
+              backgroundColor: 'rgba(76, 201, 240, 0.1)',
+              border: '1px solid rgba(76, 201, 240, 0.3)',
+              borderRadius: '8px',
+              padding: '12px 20px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+            }}
+          >
+            <span style={{ fontSize: '20px' }}>🎮</span>
+            <div>
+              <div style={{ color: '#4cc9f0', fontWeight: 600, fontSize: '14px' }}>Demo Mode Active</div>
+              <div style={{ color: '#9ca3af', fontSize: '12px' }}>
+                Viewing sample data. Connect backend API for live data.
+              </div>
+            </div>
+          </div>
+        )}
         {children}
       </div>
     </div>
