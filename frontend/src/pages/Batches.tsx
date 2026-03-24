@@ -200,6 +200,20 @@ const Batches: React.FC = () => {
     }
   };
 
+  // Safe JSON parsing helper
+  const parseFilterCriteria = (filterCriteria: string): any => {
+    if (!filterCriteria) return {};
+
+    try {
+      // Try to parse as JSON first
+      return JSON.parse(filterCriteria);
+    } catch {
+      // If it fails, it's probably a plain string (legacy format)
+      // Return a basic object with the string as a label
+      return { legacy_label: filterCriteria };
+    }
+  };
+
   const getActiveFilterCount = () => {
     let count = 0;
     if (riskLevel) count++;
@@ -531,7 +545,7 @@ const Batches: React.FC = () => {
               const actionedCount = patients.filter((p) => p.actioned).length;
               const totalCount = batch.patient_count || batch.batch_size;
               const progressPercent = totalCount > 0 ? (actionedCount / totalCount) * 100 : 0;
-              const filters = JSON.parse(batch.filter_criteria || '{}');
+              const filters = parseFilterCriteria(batch.filter_criteria || '');
 
               return (
                 <div key={batch.id} style={{
@@ -550,11 +564,14 @@ const Batches: React.FC = () => {
                           <span>{new Date(batch.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                           <span>•</span>
                           <span>{totalCount} patients</span>
-                          {filters.risk_level && (
+                          {(filters.risk_level || filters.legacy_label) && (
                             <>
                               <span>•</span>
-                              <span style={{ color: filters.risk_level === 'High' ? '#ff6b6b' : filters.risk_level === 'Medium' ? '#ffd166' : '#00d4a8' }}>
-                                {filters.risk_level} Risk
+                              <span style={{
+                                color: filters.risk_level === 'High' || filters.legacy_label?.includes('High') ? '#ff6b6b' :
+                                       filters.risk_level === 'Medium' || filters.legacy_label?.includes('Medium') ? '#ffd166' : '#00d4a8'
+                              }}>
+                                {filters.risk_level ? `${filters.risk_level} Risk` : filters.legacy_label}
                               </span>
                             </>
                           )}

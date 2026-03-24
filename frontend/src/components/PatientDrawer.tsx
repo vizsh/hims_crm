@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getPatient, sendMessage, PatientDetail } from '../api';
-import RiskBadge from './RiskBadge';
+import PatientNotes from './PatientNotes';
 import ActionButton from './ActionButton';
+import RiskBadge from './RiskBadge';
 
 interface PatientDrawerProps {
   patientId: string | null;
@@ -220,6 +221,11 @@ const PatientDrawer: React.FC<PatientDrawerProps> = ({ patientId, onClose }) => 
                 <InfoRow label="Satisfaction Score" value={patient.satisfaction_score ? `${patient.satisfaction_score.toFixed(1)}/5` : null} />
                 <InfoRow label="NPS Score" value={patient.nps_score} />
               </Section>
+
+              {/* Patient Notes & Activity Timeline */}
+              <div style={{ marginBottom: '32px' }}>
+                <PatientNotes patientId={patient.patient_id} />
+              </div>
 
               {/* Send Message Button */}
               {patient.whatsapp_opt_in === 'Yes' && (

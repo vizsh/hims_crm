@@ -3,12 +3,14 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import LoadingSplash from './components/LoadingSplash';
 import ErrorBoundary from './components/ErrorBoundary';
+import NotificationSystem from './components/NotificationSystem';
 import Dashboard from './pages/Dashboard';
 import Patients from './pages/Patients';
 import Batches from './pages/Batches';
 import Messages from './pages/Messages';
 import Analytics from './pages/Analytics';
 import { getSummary } from './api';
+import { ThemeProvider } from './components/ThemeProvider';
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -33,7 +35,7 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <ThemeProvider>
       <LoadingSplash isVisible={isLoading} />
       <Router>
         <Layout>
@@ -48,7 +50,8 @@ const App: React.FC = () => {
           </ErrorBoundary>
         </Layout>
       </Router>
-    </>
+      <NotificationSystem position="top-right" />
+    </ThemeProvider>
   );
 };
 

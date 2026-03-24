@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { isDemoMode } from '../api';
+import GlobalSearch from './GlobalSearch';
+import { ThemeToggle } from './ThemeProvider';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,6 +11,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const [showDemoBanner, setShowDemoBanner] = useState(false);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
 
   useEffect(() => {
     // Check demo mode after a short delay to allow API calls to determine mode
@@ -16,6 +19,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       setShowDemoBanner(isDemoMode());
     }, 2000);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Global keyboard shortcut for search (Ctrl+K or Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+        setShowGlobalSearch(true);
+      }
+      if (event.key === 'Escape') {
+        setShowGlobalSearch(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const navItems = [
@@ -115,6 +134,46 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Navigation */}
         <nav style={{ flex: 1, padding: '20px 0' }}>
+          {/* Quick Search Button */}
+          <div style={{ padding: '0 20px 20px' }}>
+            <button
+              onClick={() => setShowGlobalSearch(true)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                backgroundColor: 'rgba(76, 201, 240, 0.1)',
+                border: '1px solid rgba(76, 201, 240, 0.3)',
+                borderRadius: '8px',
+                color: '#4cc9f0',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(76, 201, 240, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(76, 201, 240, 0.1)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🔍 Quick Search
+              </div>
+              <kbd style={{
+                padding: '2px 6px',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '4px',
+                fontSize: '11px',
+                fontFamily: 'monospace'
+              }}>
+                ⌘K
+              </kbd>
+            </button>
+          </div>
+
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -154,11 +213,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           })}
         </nav>
 
+        {/* Theme Toggle */}
+        <div style={{ padding: '20px 20px 0', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <ThemeToggle />
+        </div>
+
         {/* Version Tag */}
         <div
           style={{
             padding: '20px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
             fontSize: '12px',
             color: '#6b7280',
           }}
@@ -193,6 +256,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         )}
         {children}
       </div>
+
+      {/* Global Search Modal */}
+      <GlobalSearch
+        isOpen={showGlobalSearch}
+        onClose={() => setShowGlobalSearch(false)}
+      />
     </div>
   );
 };

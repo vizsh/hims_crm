@@ -643,3 +643,156 @@ export async function getPatientCompleteAnalysis(patientId: string): Promise<any
     };
   }
 }
+
+// Export functionality
+export async function exportPatientData(format: 'csv' | 'pdf', filters: any): Promise<void> {
+  try {
+    // In a real implementation, this would call the backend export endpoint
+    await fetchAPI(`/patients/export`, {
+      method: 'POST',
+      body: JSON.stringify({ format, filters }),
+    });
+  } catch {
+    // Demo mode - simulate export
+    const patients = await getPatients({
+      churn_risk_label: filters.riskLevelFilter || undefined,
+      page_size: 1000
+    });
+
+    if (format === 'csv') {
+      downloadCSV(patients.patients, filters);
+    } else {
+      downloadPDF(patients.patients, filters);
+    }
+  }
+}
+
+function downloadCSV(patients: Patient[], filters: any) {
+  const headers = [
+    'Patient ID',
+    'Full Name',
+    'Age',
+    'Primary Condition',
+    'Is Chronic',
+    'Churn Risk Score',
+    'Churn Risk Label',
+    'Days Since Last Visit',
+    'Patient Segment',
+    'Hospital Branch',
+    'Satisfaction Score'
+  ];
+
+  if (filters.includeContactInfo) {
+    headers.push('Contact Number', 'Email', 'WhatsApp Opt-in');
+  }
+
+  const rows = patients.map(patient => {
+    const row = [
+      patient.patient_id,
+      patient.full_name || '',
+      patient.age || '',
+      patient.primary_condition || '',
+      patient.is_chronic || '',
+      patient.churn_risk_score || '',
+      patient.churn_risk_label || '',
+      patient.days_since_last_visit || '',
+      patient.patient_segment || '',
+      patient.hospital_branch || '',
+      patient.satisfaction_score || ''
+    ];
+
+    if (filters.includeContactInfo) {
+      row.push(patient.contact_number || '', patient.email || '', patient.whatsapp_opt_in || '');
+    }
+
+    return row;
+  });
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(field => `"${field}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `patients_export_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+}
+
+function downloadPDF(patients: Patient[], _filters: any) {
+  // Create a simple HTML report for PDF conversion
+  const reportContent = `
+    <html>
+    <head>
+      <title>MedRetain CRM - Patient Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .summary { background: #f5f5f5; padding: 15px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4cc9f0; color: white; }
+        .high-risk { background-color: #ffe6e6; }
+        .medium-risk { background-color: #fff4e6; }
+        .low-risk { background-color: #e6f7f0; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>MedRetain CRM - Patient Risk Report</h1>
+        <p>Generated on ${new Date().toLocaleDateString()}</p>
+      </div>
+
+      <div class="summary">
+        <h2>Report Summary</h2>
+        <p><strong>Total Patients:</strong> ${patients.length}</p>
+        <p><strong>High Risk:</strong> ${patients.filter(p => p.churn_risk_label === 'High').length}</p>
+        <p><strong>Medium Risk:</strong> ${patients.filter(p => p.churn_risk_label === 'Medium').length}</p>
+        <p><strong>Low Risk:</strong> ${patients.filter(p => p.churn_risk_label === 'Low').length}</p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Patient ID</th>
+            <th>Name</th>
+            <th>Risk Level</th>
+            <th>Risk Score</th>
+            <th>Condition</th>
+            <th>Days Since Visit</th>
+            <th>Branch</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${patients.map(patient => `
+            <tr class="${patient.churn_risk_label?.toLowerCase()}-risk">
+              <td>${patient.patient_id}</td>
+              <td>${patient.full_name || 'N/A'}</td>
+              <td>${patient.churn_risk_label || 'N/A'}</td>
+              <td>${patient.churn_risk_score?.toFixed(1) || 'N/A'}</td>
+              <td>${patient.primary_condition || 'N/A'}</td>
+              <td>${patient.days_since_last_visit || 'N/A'}</td>
+              <td>${patient.hospital_branch || 'N/A'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `;
+
+  // Open in new window for printing to PDF
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(reportContent);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 1000);
+  }
+}
