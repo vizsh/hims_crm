@@ -45,15 +45,66 @@ const Batches: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [batchesData, options] = await Promise.all([
-        getBatches(),
-        getFilterOptions()
-      ]);
+      setError(null);
+
+      // Load data with individual error handling
+      let batchesData: Batch[] = [];
+      let options: FilterOptions | null = null;
+
+      try {
+        batchesData = await getBatches();
+      } catch (err) {
+        console.error('Failed to load batches:', err);
+        // getBatches already has fallback data in its catch block
+        batchesData = await getBatches(); // This will return demo data
+      }
+
+      try {
+        options = await getFilterOptions();
+      } catch (err) {
+        console.error('Failed to load filter options:', err);
+        // getFilterOptions already has fallback data in its catch block
+        options = await getFilterOptions(); // This will return demo data
+      }
+
       setBatches(batchesData);
       setFilterOptions(options);
-      setError(null);
     } catch (err) {
+      console.error('Critical error in loadData:', err);
       setError(err instanceof Error ? err.message : 'Failed to load data');
+
+      // Set fallback data to prevent blank screen
+      setBatches([]);
+      setFilterOptions({
+        risk_levels: ['High', 'Medium', 'Low'],
+        branches: ['Downtown Hospital', 'Westside Clinic', 'Eastside Medical'],
+        segments: ['Chronic High Value', 'Chronic Regular', 'Returning', 'One-time', 'Acute High Risk'],
+        conditions: ['Diabetes', 'Hypertension', 'Heart Disease'],
+        chronic_options: ['Yes', 'No'],
+        days_overdue_options: [
+          { value: '0-30', label: '0-30 days' },
+          { value: '31-90', label: '31-90 days' },
+          { value: '90+', label: '90+ days' }
+        ],
+        satisfaction_levels: [
+          { value: '1', label: '1 star' },
+          { value: '2', label: '2 stars' },
+          { value: '3', label: '3 stars' },
+          { value: '4', label: '4 stars' },
+          { value: '5', label: '5 stars' }
+        ],
+        no_show_risk_levels: [
+          { value: 'low', label: 'Low (0-10%)' },
+          { value: 'medium', label: 'Medium (10-25%)' },
+          { value: 'high', label: 'High (25%+)' }
+        ],
+        age_groups: [
+          { value: 'young', label: 'Young (0-35)' },
+          { value: 'middle', label: 'Middle (36-55)' },
+          { value: 'senior', label: 'Senior (56-70)' },
+          { value: 'elderly', label: 'Elderly (70+)' }
+        ]
+      });
     } finally {
       setLoading(false);
     }
@@ -243,9 +294,9 @@ const Batches: React.FC = () => {
             <label style={labelStyle}>Churn Risk Level</label>
             <select value={riskLevel} onChange={(e) => setRiskLevel(e.target.value)} style={selectStyle}>
               <option value="">Any Risk Level</option>
-              {filterOptions?.risk_levels.map(level => (
+              {filterOptions?.risk_levels?.map(level => (
                 <option key={level} value={level}>{level} Risk</option>
-              ))}
+              )) || []}
             </select>
           </div>
 
@@ -253,9 +304,9 @@ const Batches: React.FC = () => {
             <label style={labelStyle}>Patient Segment</label>
             <select value={segment} onChange={(e) => setSegment(e.target.value)} style={selectStyle}>
               <option value="">Any Segment</option>
-              {filterOptions?.segments.map(seg => (
+              {filterOptions?.segments?.map(seg => (
                 <option key={seg} value={seg}>{seg}</option>
-              ))}
+              )) || []}
             </select>
           </div>
 
@@ -263,9 +314,9 @@ const Batches: React.FC = () => {
             <label style={labelStyle}>Hospital Branch</label>
             <select value={branch} onChange={(e) => setBranch(e.target.value)} style={selectStyle}>
               <option value="">Any Branch</option>
-              {filterOptions?.branches.map(b => (
+              {filterOptions?.branches?.map(b => (
                 <option key={b} value={b}>{b}</option>
-              ))}
+              )) || []}
             </select>
           </div>
 
@@ -273,9 +324,9 @@ const Batches: React.FC = () => {
             <label style={labelStyle}>Days Overdue</label>
             <select value={daysOverdue} onChange={(e) => setDaysOverdue(e.target.value)} style={selectStyle}>
               <option value="">Any Duration</option>
-              {filterOptions?.days_overdue_options.map(opt => (
+              {filterOptions?.days_overdue_options?.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
+              )) || []}
             </select>
           </div>
         </div>
@@ -322,9 +373,9 @@ const Batches: React.FC = () => {
               <label style={labelStyle}>Satisfaction Level</label>
               <select value={satisfactionLevel} onChange={(e) => setSatisfactionLevel(e.target.value)} style={selectStyle}>
                 <option value="">Any Satisfaction</option>
-                {filterOptions?.satisfaction_levels.map(opt => (
+                {filterOptions?.satisfaction_levels?.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
+                )) || []}
               </select>
             </div>
 
@@ -332,9 +383,9 @@ const Batches: React.FC = () => {
               <label style={labelStyle}>No-Show Risk</label>
               <select value={noShowRisk} onChange={(e) => setNoShowRisk(e.target.value)} style={selectStyle}>
                 <option value="">Any No-Show Rate</option>
-                {filterOptions?.no_show_risk_levels.map(opt => (
+                {filterOptions?.no_show_risk_levels?.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
+                )) || []}
               </select>
             </div>
 
@@ -342,9 +393,9 @@ const Batches: React.FC = () => {
               <label style={labelStyle}>Age Group</label>
               <select value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} style={selectStyle}>
                 <option value="">Any Age</option>
-                {filterOptions?.age_groups.map(opt => (
+                {filterOptions?.age_groups?.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
+                )) || []}
               </select>
             </div>
 
@@ -352,9 +403,9 @@ const Batches: React.FC = () => {
               <label style={labelStyle}>Primary Condition</label>
               <select value={condition} onChange={(e) => setCondition(e.target.value)} style={selectStyle}>
                 <option value="">Any Condition</option>
-                {filterOptions?.conditions.map(c => (
+                {filterOptions?.conditions?.map(c => (
                   <option key={c} value={c}>{c}</option>
-                ))}
+                )) || []}
               </select>
             </div>
 

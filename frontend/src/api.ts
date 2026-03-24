@@ -6,7 +6,27 @@
 
 // Check if we're in demo mode (no backend available)
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
+// Force demo mode for static deployments (Vercel, Netlify)
 let isDemo = false;
+
+// Check if we're likely in a static deployment
+const detectStaticDeployment = () => {
+  // Check for common static deployment indicators
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isVercel = hostname.includes('.vercel.app') || hostname.includes('.vercel.com');
+  const isNetlify = hostname.includes('.netlify.app') || hostname.includes('.netlify.com');
+  const isLocal = hostname === 'localhost' || hostname.startsWith('127.0.0.1');
+
+  // If we're on a known static host and no explicit API URL is set
+  return (isVercel || isNetlify || (!import.meta.env.VITE_API_URL && !isLocal));
+};
+
+// Initialize demo mode for static deployments
+if (typeof window !== 'undefined' && detectStaticDeployment()) {
+  isDemo = true;
+  console.log('🎭 Demo mode activated for static deployment');
+}
 
 // Types
 export interface Patient {
@@ -209,8 +229,17 @@ const DEMO_SUMMARY: AnalyticsSummary = {
 
 // API Functions
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  // If already in demo mode, skip API call
+  if (isDemo) {
+    throw new Error('Demo mode active - API call skipped');
+  }
+
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const response = await fetch(`${API_BASE}${endpoint}`, {
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         ...options?.headers,
@@ -218,14 +247,17 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
       ...options,
     });
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
     return response.json();
   } catch (error) {
     // Switch to demo mode if API is not available
     isDemo = true;
+    console.log('🎭 Switched to demo mode due to API error:', error instanceof Error ? error.message : 'Unknown error');
     throw error;
   }
 }
