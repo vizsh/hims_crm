@@ -20,7 +20,7 @@ interface SendWhatsAppButtonProps {
 }
 
 const SendWhatsAppButton: React.FC<SendWhatsAppButtonProps> = ({
-  patientPhone = '+917400291925',
+  patientPhone = '+917400291925', // FIXED: Hardcoded demo number for all patients
   patientName = 'Patient',
   appointmentDate,
   appointmentTime,
@@ -37,7 +37,10 @@ const SendWhatsAppButton: React.FC<SendWhatsAppButtonProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Get API URL from environment or use default
-  const API_BASE_URL = import.meta.env.VITE_MESSAGING_API_URL || 'http://localhost:5000';
+  const API_BASE_URL = import.meta.env.VITE_MESSAGING_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+  console.log('🔗 API Base URL:', API_BASE_URL);
+  console.log('📱 Phone Number:', patientPhone);
 
   /**
    * Send WhatsApp Message
@@ -48,93 +51,67 @@ const SendWhatsAppButton: React.FC<SendWhatsAppButtonProps> = ({
     setErrorMessage(null);
 
     try {
-      let response;
+      console.log('📤 Sending WhatsApp message...');
+      console.log('Target:', patientPhone);
+      console.log('Type:', messageType);
+
+      let endpoint = `${API_BASE_URL}/send-message`;
+      let payload: any = {
+        phoneNumber: patientPhone,
+        patientName,
+        message: 'Hi, this is a booking reminder. Your appointment is confirmed.',
+      };
 
       if (messageType === 'reminder' && appointmentDate) {
-        // Send appointment reminder
-        response = await fetch(`${API_BASE_URL}/send-appointment-reminder`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            phoneNumber: patientPhone,
-            patientName,
-            appointmentDate,
-            appointmentTime,
-            doctorName
-          })
-        });
+        endpoint = `${API_BASE_URL}/send-appointment-reminder`;
+        payload = { phoneNumber: patientPhone, patientName, appointmentDate, appointmentTime, doctorName };
       } else if (messageType === 'followup') {
-        // Send follow-up message
-        response = await fetch(`${API_BASE_URL}/send-followup-message`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            phoneNumber: patientPhone,
-            patientName,
-            reason
-          })
-        });
-      } else {
-        // Send default message
-        response = await fetch(`${API_BASE_URL}/send-message`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            phoneNumber: patientPhone,
-            patientName,
-            message: 'Hi, this is a booking reminder. Your appointment is confirmed.',
-            appointmentDate
-          })
-        });
+        endpoint = `${API_BASE_URL}/send-followup-message`;
+        payload = { phoneNumber: patientPhone, patientName, reason };
+      }
+
+      console.log('📡 Endpoint:', endpoint);
+      console.log('💾 Payload:', payload);
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      console.log('📥 Response Status:', response.status);
+      console.log('📥 Response Headers:', response.headers);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('✅ Response Data:', data);
 
       if (data.success) {
         setStatus('success');
         setMessageSid(data.data?.messageSid || null);
-
         console.log('✅ Message sent successfully:', data.data?.messageSid);
-
-        if (onSuccess) {
-          onSuccess(data.data?.messageSid || '');
-        }
-
-        // Auto-dismiss success after 4 seconds
-        setTimeout(() => {
-          setStatus('idle');
-          setMessageSid(null);
-        }, 4000);
-
+        if (onSuccess) onSuccess(data.data?.messageSid || '');
+        setTimeout(() => { setStatus('idle'); setMessageSid(null); }, 4000);
       } else {
         throw new Error(data.error || 'Failed to send message');
       }
 
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('❌ Full Error:', error);
+      console.error('❌ Error Message:', errorMsg);
+
       setStatus('error');
       setErrorMessage(errorMsg);
 
-      console.error('❌ Error:', errorMsg);
-
-      if (onError) {
-        onError(errorMsg);
-      }
-
-      // Auto-dismiss error after 5 seconds
-      setTimeout(() => {
-        setStatus('idle');
-        setErrorMessage(null);
-      }, 5000);
+      if (onError) onError(errorMsg);
+      setTimeout(() => { setStatus('idle'); setErrorMessage(null); }, 5000);
 
     } finally {
       setLoading(false);
