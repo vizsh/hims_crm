@@ -17,8 +17,30 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('combined'));
 
 // CORS Configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:3000',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://hims-crm.vercel.app',
+  'https://charming-mooncake-0b383a.netlify.app',
+  'https://medretain-crm.vercel.app'
+];
+
+console.log('🔐 CORS Allowed Origins:', allowedOrigins);
+console.log('📍 FRONTEND_URL from env:', process.env.FRONTEND_URL);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️  CORS blocked origin: ${origin}`);
+      callback(new Error('CORS not allowed'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
