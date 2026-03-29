@@ -1,0 +1,15 @@
+{
+  "name": "medretain-crm",
+  "version": "1.0.0",
+  "description": "Hospital Patient Retention CRM",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "preview": "cd frontend && npm run preview"
+  },
+  "workspaces": [
+    "frontend",
+    "messaging-service"
+  ]
+}
