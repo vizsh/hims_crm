@@ -8,3 +8,5 @@ messaging-service
 dist
 .next
 out
+*.log
+.DS_Store
