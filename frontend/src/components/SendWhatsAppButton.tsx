@@ -20,7 +20,7 @@ interface SendWhatsAppButtonProps {
 }
 
 const SendWhatsAppButton: React.FC<SendWhatsAppButtonProps> = ({
-  patientPhone = '+917400291925', // DEMO: ALWAYS +917400291925
+  patientPhone, // DEMO: Ignored - always uses +917400291925
   patientName = 'Patient',
   appointmentDate,
   appointmentTime,
