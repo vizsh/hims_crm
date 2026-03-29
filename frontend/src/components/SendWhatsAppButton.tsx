@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 
 interface SendWhatsAppButtonProps {
-  patientPhone?: string;
+  patientPhone?: string; // Ignored in demo - always uses +917400291925
   patientName?: string;
   appointmentDate?: string;
   appointmentTime?: string;
@@ -31,6 +31,8 @@ const SendWhatsAppButton: React.FC<SendWhatsAppButtonProps> = ({
   onError,
   variant = 'primary'
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  void patientPhone; // Intentionally unused - demo always uses +917400291925
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [messageSid, setMessageSid] = useState<string | null>(null);
