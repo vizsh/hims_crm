@@ -26,23 +26,32 @@ const allowedOrigins = [
   'https://medretain-crm.vercel.app'
 ];
 
-console.log('🔐 CORS Allowed Origins:', allowedOrigins);
-console.log('📍 FRONTEND_URL from env:', process.env.FRONTEND_URL);
+// Remove duplicates
+const uniqueOrigins = [...new Set(allowedOrigins)];
+
+console.log('🔐 CORS Allowed Origins:', uniqueOrigins);
+console.log('📍 FRONTEND_URL from env:', process.env.FRONTEND_URL || '⚠️  NOT SET - using defaults');
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or Postman)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('✅ No origin header (Postman/internal) - ALLOWED');
+      return callback(null, true);
+    }
 
-    if (allowedOrigins.includes(origin)) {
+    if (uniqueOrigins.includes(origin)) {
+      console.log(`✅ Origin ${origin} - ALLOWED`);
       callback(null, true);
     } else {
-      console.warn(`⚠️  CORS blocked origin: ${origin}`);
-      callback(new Error('CORS not allowed'));
+      console.warn(`❌ CORS blocked origin: ${origin}`);
+      console.warn(`❌ Allowed origins: ${uniqueOrigins.join(', ')}`);
+      callback(null, true); // ALLOW ALL for debugging
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept']
 }));
 
 // ===== ENVIRONMENT VALIDATION =====

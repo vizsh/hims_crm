@@ -20,7 +20,7 @@ interface SendWhatsAppButtonProps {
 }
 
 const SendWhatsAppButton: React.FC<SendWhatsAppButtonProps> = ({
-  patientPhone = '+917400291925', // FIXED: Hardcoded demo number for all patients
+  patientPhone = '+917400291925', // DEMO: ALWAYS +917400291925
   patientName = 'Patient',
   appointmentDate,
   appointmentTime,
@@ -36,11 +36,14 @@ const SendWhatsAppButton: React.FC<SendWhatsAppButtonProps> = ({
   const [messageSid, setMessageSid] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // FORCE DEMO PHONE NUMBER - ALWAYS +917400291925
+  const DEMO_PHONE_NUMBER = '+917400291925';
+
   // Get API URL from environment or use default
   const API_BASE_URL = import.meta.env.VITE_MESSAGING_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   console.log('🔗 API Base URL:', API_BASE_URL);
-  console.log('📱 Phone Number:', patientPhone);
+  console.log('📱 DEMO Phone Number:', DEMO_PHONE_NUMBER);
 
   /**
    * Send WhatsApp Message
@@ -52,22 +55,22 @@ const SendWhatsAppButton: React.FC<SendWhatsAppButtonProps> = ({
 
     try {
       console.log('📤 Sending WhatsApp message...');
-      console.log('Target:', patientPhone);
-      console.log('Type:', messageType);
+      console.log('Target Phone (DEMO):', DEMO_PHONE_NUMBER);
+      console.log('Message Type:', messageType);
 
       let endpoint = `${API_BASE_URL}/send-message`;
       let payload: any = {
-        phoneNumber: patientPhone,
+        phoneNumber: DEMO_PHONE_NUMBER,  // ALWAYS USE DEMO PHONE
         patientName,
         message: 'Hi, this is a booking reminder. Your appointment is confirmed.',
       };
 
       if (messageType === 'reminder' && appointmentDate) {
         endpoint = `${API_BASE_URL}/send-appointment-reminder`;
-        payload = { phoneNumber: patientPhone, patientName, appointmentDate, appointmentTime, doctorName };
+        payload = { phoneNumber: DEMO_PHONE_NUMBER, patientName, appointmentDate, appointmentTime, doctorName };
       } else if (messageType === 'followup') {
         endpoint = `${API_BASE_URL}/send-followup-message`;
-        payload = { phoneNumber: patientPhone, patientName, reason };
+        payload = { phoneNumber: DEMO_PHONE_NUMBER, patientName, reason };
       }
 
       console.log('📡 Endpoint:', endpoint);
@@ -206,7 +209,7 @@ const SendWhatsAppButton: React.FC<SendWhatsAppButtonProps> = ({
         onClick={sendWhatsAppMessage}
         disabled={loading || status === 'success'}
         style={getButtonStyle()}
-        title={`Send WhatsApp to ${patientPhone}`}
+        title={`Send WhatsApp demo to ${DEMO_PHONE_NUMBER}`}
       >
         {getButtonText()}
       </button>
