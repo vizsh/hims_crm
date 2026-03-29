@@ -3,6 +3,7 @@ import { getPatient, sendMessage, PatientDetail } from '../api';
 import PatientNotes from './PatientNotes';
 import ActionButton from './ActionButton';
 import RiskBadge from './RiskBadge';
+import SendWhatsAppButton from './SendWhatsAppButton';
 
 interface PatientDrawerProps {
   patientId: string | null;
@@ -230,9 +231,56 @@ const PatientDrawer: React.FC<PatientDrawerProps> = ({ patientId, onClose }) => 
               {/* Send Message Button */}
               {patient.whatsapp_opt_in === 'Yes' && (
                 <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                  <ActionButton onClick={() => setShowMessageModal(true)}>
-                    📱 Send WhatsApp Message
-                  </ActionButton>
+                  <h4 style={{ margin: '0 0 16px', color: '#fff', fontSize: '16px', fontWeight: 600 }}>
+                    📱 WhatsApp Actions
+                  </h4>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                    <SendWhatsAppButton
+                      patientPhone={patient.contact_number || undefined}
+                      patientName={patient.full_name || 'Patient'}
+                      messageType="default"
+                      variant="primary"
+                    />
+
+                    <button
+                      onClick={() => setShowMessageModal(true)}
+                      style={{
+                        padding: '10px 16px',
+                        backgroundColor: 'rgba(76, 201, 240, 0.1)',
+                        border: '1px solid rgba(76, 201, 240, 0.3)',
+                        borderRadius: '8px',
+                        color: '#4cc9f0',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      ✏️ Custom Message
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                    <SendWhatsAppButton
+                      patientPhone={patient.contact_number || undefined}
+                      patientName={patient.full_name || 'Patient'}
+                      messageType="followup"
+                      reason="missed_appointment"
+                      variant="secondary"
+                    />
+
+                    <SendWhatsAppButton
+                      patientPhone={patient.contact_number || undefined}
+                      patientName={patient.full_name || 'Patient'}
+                      messageType="followup"
+                      reason="pending_results"
+                      variant="secondary"
+                    />
+                  </div>
                 </div>
               )}
             </div>

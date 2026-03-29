@@ -12,6 +12,7 @@ import {
 } from '../api';
 import ActionButton from '../components/ActionButton';
 import RiskBadge from '../components/RiskBadge';
+import BatchWhatsAppCampaign from '../components/BatchWhatsAppCampaign';
 
 const Batches: React.FC = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
@@ -37,6 +38,12 @@ const Batches: React.FC = () => {
   const [label, setLabel] = useState('');
   const [creating, setCreating] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showBatchCampaign, setShowBatchCampaign] = useState(false);
+  const [selectedBatchPatients, setSelectedBatchPatients] = useState<Array<{
+    patientId: string;
+    phone: string;
+    name: string;
+  }>>([]);
 
   useEffect(() => {
     loadData();
@@ -606,6 +613,40 @@ const Batches: React.FC = () => {
                       backgroundColor: 'rgba(0, 0, 0, 0.2)',
                       padding: '20px'
                     }}>
+                      {/* Batch Campaign Button */}
+                      {patients.length > 0 && (
+                        <div style={{ marginBottom: '20px' }}>
+                          <button
+                            onClick={() => {
+                              const patientsForCampaign = patients
+                                .filter(p => p.contact_number)
+                                .map(p => ({
+                                  patientId: p.patient_id,
+                                  phone: p.contact_number || '',
+                                  name: p.full_name || 'Unknown'
+                                }));
+                              setSelectedBatchPatients(patientsForCampaign);
+                              setShowBatchCampaign(true);
+                            }}
+                            style={{
+                              padding: '12px 20px',
+                              backgroundColor: '#00d4a8',
+                              color: '#0a0d12',
+                              border: 'none',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}
+                          >
+                            📱 Send WhatsApp Campaign ({patients.filter(p => p.contact_number).length} patients)
+                          </button>
+                        </div>
+                      )}
+
                       {patients.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '30px', color: '#9ca3af' }}>Loading patients...</div>
                       ) : (
@@ -679,6 +720,16 @@ const Batches: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Batch WhatsApp Campaign Modal */}
+      <BatchWhatsAppCampaign
+        isOpen={showBatchCampaign}
+        onClose={() => {
+          setShowBatchCampaign(false);
+          setSelectedBatchPatients([]);
+        }}
+        patients={selectedBatchPatients}
+      />
 
       <style>{`
         @keyframes spin {
